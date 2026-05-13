@@ -1,0 +1,57 @@
+{% extends 'qa_app/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card shadow">
+        <div class="card-header bg-dark text-white text-center">
+          <h4>Chat History</h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-3 text-end">
+            <form method="post" action="{% url 'clear_history' %}" onsubmit="return confirm('Are you sure you want to clear all chat history?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Clear All History</button>
+            </form>
+          </div>
+          {% if histories %}
+            <ul class="list-group">
+              {% for h in histories %}
+                <li class="list-group-item">
+                  <div class="fw-bold">
+                    {% if h.key == 'group_chat' %}
+                      <span class="badge bg-warning text-dark">Group Chat: All Best-Fit Candidates</span>
+                    {% else %}
+                      Candidate: {{ h.candidate_name|default:'Unknown' }}
+                      {% if h.jd_id %} | JD: {{ h.jd_title|default:'-' }}{% endif %}
+                    {% endif %}
+                    {% if h.created %}
+                      {% if h.created|length > 0 %}
+                        <span class="text-muted small ms-2">(Created: {{ h.created|date:"Y-m-d H:i" }})</span>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                  {% if h.chat %}
+                    <ul class="mb-2">
+                      {% for entry in h.chat %}
+                        <li><b>Q:</b> {{ entry.question }}<br><b>A:</b> {{ entry.answer }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <span class="text-muted">No chat history.</span>
+                  {% endif %}
+                  {% if h.key != 'group_chat' %}
+                    <a href="{% url 'chat' h.resume_id %}{% if h.jd_id %}?jd_id={{ h.jd_id }}{% endif %}" class="btn btn-sm btn-primary">Go to Chat</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="alert alert-info">No chat history found.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'qa_app/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-10 offset-md-1">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="mb-0">Chat with All Best-Fit Candidates</h5>
+          {% if jd %}<span class="badge bg-info text-dark">JD: {{ jd.title }}</span>{% endif %}
+        </div>
+      </div>
+      {% if jd %}
+      <div class="collapse mb-2 show" id="jdContext">
+        <div class="card card-body bg-light small" style="white-space: pre-line;">
+          <b>JD:</b> {{ jd.text_content|default:'No JD text available.' }}
+        </div>
+      </div>
+      {% endif %}
+      <div class="mb-3 text-end">
+        <form method="post" action="{% url 'clear_group_chat' %}" onsubmit="return confirm('Are you sure you want to clear the group chat history?');" style="display:inline-block;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">Clear Group Chat History</button>
+        </form>
+      </div>
+      <div class="card shadow chat-card">
+        <div class="card-body chat-body" id="chat-body" style="min-height: 350px; max-height: 60vh; overflow-y: auto; background: #f8f9fa;">
+          {% if resumes %}
+            <div class="mb-3">
+              <b>Resumes in this chat:</b>
+              <ul class="mb-2">
+                {% for r in resumes %}
+                  <li>{{ r.candidate_name }} <a href="{{ r.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">PDF</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          {% if chat_history %}
+            {% for entry in chat_history %}
+              <div class="mb-3">
+                <div class="d-flex justify-content-end">
+                  <div class="chat-bubble user">{{ entry.question }}</div>
+                </div>
+                <div class="d-flex justify-content-start">
+                  <div class="chat-bubble ai">{{ entry.answer|linebreaksbr }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center text-muted">No conversation yet. Ask your first question!</div>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white">
+          <form method="post" class="d-flex align-items-end gap-2">
+            {% csrf_token %}
+            <div class="flex-grow-1">{{ form.question }}</div>
+            <button type="submit" class="btn btn-success">Ask</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.chat-bubble {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 18px;
+  margin-bottom: 2px;
+  max-width: 75%;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.chat-bubble.user {
+  background: #007bff;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+.chat-bubble.ai {
+  background: #e9ecef;
+  color: #222;
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+}
+.chat-card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+</style>
+<script>
+  // Scroll chat to bottom on page load (after each response)
+  function scrollChatToBottom() {
+    var chatBody = document.getElementById('chat-body');
+    if (chatBody) {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+  }
+  window.addEventListener('DOMContentLoaded', scrollChatToBottom);
+</script>
+{% endblock %}

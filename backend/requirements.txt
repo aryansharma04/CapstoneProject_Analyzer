@@ -1,0 +1,12 @@
+django>=4.2
+pdfplumber
+sentence-transformers
+scikit-learn
+openai
+python-dotenv
+gunicorn
+google-generativeai
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+django-filter

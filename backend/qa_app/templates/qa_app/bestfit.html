@@ -1,0 +1,47 @@
+{% extends 'qa_app/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white text-center">
+          <h4>Best Fit Candidates for JD: {{ jd.title }}</h4>
+        </div>
+        <div class="card-body">
+          {% if best %}
+            <h5>Top Matches:</h5>
+            <div class="mb-3">
+              <a href="{% url 'group_chat' %}?jd_id={{ jd.id }}{% for res in best %}&resume_ids={{ res.id }}{% endfor %}" class="btn btn-success">Chat with All Best-Fit Candidates</a>
+            </div>
+            <ul class="list-group mb-4">
+              {% for res in best %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>{{ res.candidate_name }}</span>
+                  <div class="d-flex gap-2">
+                    <a href="{{ res.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Resume</a>
+                    <a href="{% url 'chat' res.id %}?jd_id={{ jd.id }}" class="btn btn-sm btn-success">Chat</a>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+<script>
+// Optionally, highlight the chat button or add tooltips for HR guidance
+</script>
+          {% else %}
+            <div class="alert alert-warning">No strong matches found.</div>
+          {% endif %}
+          <h6>All Candidates (with similarity):</h6>
+          <ul class="list-group">
+            {% for res, sim in all_results %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ res.candidate_name }}</span>
+                <span class="badge bg-secondary">{{ sim|floatformat:2 }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

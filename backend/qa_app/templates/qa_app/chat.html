@@ -1,0 +1,179 @@
+{% extends 'qa_app/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="mb-0">Chat with Candidate Resume</h5>
+          <span class="badge bg-secondary">{{ resume.file.name|slice:'7:' }}</span>
+        </div>
+        {% if jd %}
+        <div class="ms-3">
+          <span class="badge bg-info text-dark">JD: {{ jd.title }}</span>
+          <button class="btn btn-link btn-sm p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#jdContext" aria-expanded="false" aria-controls="jdContext">Show JD</button>
+        </div>
+        {% endif %}
+      </div>
+      {% if jd %}
+      <div class="collapse mb-2" id="jdContext">
+        <div class="card card-body bg-light small" style="white-space: pre-line;">
+          {{ jd.text_content|default:'No JD text available.' }}
+        </div>
+      </div>
+      {% endif %}
+      <div class="card shadow chat-card">
+        <div class="card-body chat-body" id="chat-body" style="min-height: 350px; max-height: 60vh; overflow-y: auto; background: #f8f9fa;">
+          {% if chat_history %}
+            <form method="post" class="mb-2">
+              {% csrf_token %}
+              <input type="hidden" name="delete_chat" value="1">
+              <input type="hidden" name="delete_idx" value="all">
+              <button type="submit" class="btn btn-sm btn-danger">Delete All Chat</button>
+            </form>
+            {% for entry in chat_history %}
+              <div class="mb-3 position-relative">
+                <form method="post" class="position-absolute top-0 end-0" style="z-index:2;">
+                  {% csrf_token %}
+                  <input type="hidden" name="delete_chat" value="1">
+                  <input type="hidden" name="delete_idx" value="{{ forloop.counter0 }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">&times;</button>
+                </form>
+                <div class="d-flex justify-content-end">
+                  <div class="chat-bubble user">{{ entry.question }}</div>
+                </div>
+                <div class="d-flex justify-content-start">
+                  <div class="chat-bubble ai">{{ entry.answer|linebreaksbr }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center text-muted">No conversation yet. Ask your first question!</div>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white">
+          <form id="chat-form" method="post" action="{% url 'ask_question' resume.id %}" class="d-flex align-items-end gap-2">
+            {% csrf_token %}
+            {% if jd_id %}
+              <input type="hidden" name="jd_id" value="{{ jd_id }}">
+            {% endif %}
+            <div class="flex-grow-1">{{ form.question }}</div>
+            <button type="submit" class="btn btn-success" id="ask-btn">Ask</button>
+            <button type="button" class="btn btn-info" id="generate-questions-btn">Generate Interview Questions</button>
+            <div id="loading-spinner" class="spinner-border text-primary ms-2" style="display:none;width:1.5rem;height:1.5rem;" role="status"><span class="visually-hidden">Loading...</span></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.chat-bubble {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 18px;
+  margin-bottom: 2px;
+  max-width: 75%;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.chat-bubble.user {
+  background: #007bff;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+.chat-bubble.ai {
+  background: #e9ecef;
+  color: #222;
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+}
+.chat-card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+</style>
+<script>
+  // Scroll chat to bottom on page load (after each response)
+  function scrollChatToBottom() {
+    var chatBody = document.getElementById('chat-body');
+    if (chatBody) {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+  }
+  window.addEventListener('DOMContentLoaded', scrollChatToBottom);
+
+  // AJAX chat submit and smart interview question generation
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const askBtn = document.getElementById('ask-btn');
+    const spinner = document.getElementById('loading-spinner');
+    const chatBody = document.getElementById('chat-body');
+    const generateBtn = document.getElementById('generate-questions-btn');
+    if (chatForm) {
+      chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        askBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        const formData = new FormData(chatForm);
+        fetch(chatForm.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Append new Q&A to chat
+            const userHtml = `<div class="mb-3"><div class="d-flex justify-content-end"><div class="chat-bubble user">${data.question}</div></div>`;
+            const aiHtml = `<div class="d-flex justify-content-start"><div class="chat-bubble ai">${data.answer.replace(/\n/g, '<br>')}</div></div></div>`;
+            chatBody.insertAdjacentHTML('beforeend', userHtml + aiHtml);
+            chatForm.reset();
+            scrollChatToBottom();
+          } else if (data.error) {
+            alert(data.error);
+          }
+        })
+        .catch(() => { alert('Error. Please try again.'); })
+        .finally(() => {
+          askBtn.disabled = false;
+          spinner.style.display = 'none';
+        });
+      });
+      if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+          askBtn.disabled = true;
+          generateBtn.disabled = true;
+          spinner.style.display = 'inline-block';
+          const formData = new FormData(chatForm);
+          formData.set('question', 'Generate a numbered list of smart interview questions to assess the candidate based on the job description and resume.');
+          fetch(chatForm.action, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              const userHtml = `<div class="mb-3"><div class="d-flex justify-content-end"><div class="chat-bubble user">${data.question}</div></div>`;
+              const aiHtml = `<div class="d-flex justify-content-start"><div class="chat-bubble ai">${data.answer.replace(/\n/g, '<br>')}</div></div></div>`;
+              chatBody.insertAdjacentHTML('beforeend', userHtml + aiHtml);
+              scrollChatToBottom();
+            } else if (data.error) {
+              alert(data.error);
+            }
+          })
+          .catch(() => { alert('Error. Please try again.'); })
+          .finally(() => {
+            askBtn.disabled = false;
+            generateBtn.disabled = false;
+            spinner.style.display = 'none';
+          });
+        });
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'qa_app/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-header bg-secondary text-white text-center">
+          <h6 class="mb-0">Uploaded Resumes</h6>
+        </div>
+        <div class="card-body p-2" style="max-height: 70vh; overflow-y: auto;">
+          {% if all_resumes %}
+            <ul class="list-group list-group-flush">
+              {% for res in all_resumes %}
+                <li class="list-group-item py-1 px-2 d-flex justify-content-between align-items-center">
+                  <span style="font-size:0.95em">{{ res.candidate_name|default:'(No Name)' }}</span>
+                  <a href="{{ res.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">PDF</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-muted small">No resumes uploaded yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+          <h3>Bulk Resume Upload for HR</h3>
+          <p class="mb-0">Upload multiple candidate resumes as PDF files or an entire folder.</p>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+              <div class="d-flex gap-2 mb-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="fileModeBtn">File Upload</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="folderModeBtn">Folder Upload</button>
+              </div>
+              <label class="form-label" id="uploadModeLabel">Select PDF resumes (files)</label>
+              <input type="file" id="files" name="files" multiple class="form-control" accept="application/pdf">
+              <input type="file" id="folderInput" name="files" multiple webkitdirectory directory class="form-control mt-2" style="display:none;">
+              <ul id="selected-files-list" class="list-group mt-2"></ul>
+              <input type="hidden" name="files" id="hidden-files-input">
+              {% if messages %}
+                {% for message in messages %}
+                  {% if 'error' in message.tags %}
+                    <div class="alert alert-warning mt-2">Please re-select your files to upload.</div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-2">Upload All</button>
+            <button type="button" class="btn btn-danger w-100" onclick="if(confirm('Are you sure you want to delete all uploaded resumes?')){window.location.href='/bulk-upload/?clear=1';}">Clear All Uploaded Resumes</button>
+          </form>
+          <script>
+            // Cumulative file selection logic for both file and folder mode
+            let selectedFiles = [];
+            const fileInput = document.getElementById('files');
+            const folderInput = document.getElementById('folderInput');
+            const list = document.getElementById('selected-files-list');
+            const fileModeBtn = document.getElementById('fileModeBtn');
+            const folderModeBtn = document.getElementById('folderModeBtn');
+            const uploadModeLabel = document.getElementById('uploadModeLabel');
+
+            function updateFileList() {
+              list.innerHTML = '';
+              selectedFiles.forEach((file, idx) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item py-1 px-2 d-flex justify-content-between align-items-center';
+                li.innerHTML = `<span>${file.webkitRelativePath || file.name}</span><button type='button' class='btn btn-sm btn-danger' onclick='removeFile(${idx})'>&times;</button>`;
+                list.appendChild(li);
+              });
+            }
+
+            function addFilesFromInput(input) {
+              for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size && (f.webkitRelativePath || '') === (file.webkitRelativePath || ''))) {
+                  selectedFiles.push(file);
+                }
+              }
+              updateFileList();
+              input.value = '';
+            }
+
+            fileInput.addEventListener('change', function() { addFilesFromInput(fileInput); });
+            folderInput.addEventListener('change', function() { addFilesFromInput(folderInput); });
+
+            window.removeFile = function(idx) {
+              selectedFiles.splice(idx, 1);
+              updateFileList();
+            }
+
+            // Upload mode switching
+            fileModeBtn.addEventListener('click', function() {
+              fileInput.style.display = '';
+              folderInput.style.display = 'none';
+              uploadModeLabel.textContent = 'Select PDF resumes (files)';
+              fileModeBtn.classList.add('btn-primary');
+              fileModeBtn.classList.remove('btn-outline-primary');
+              folderModeBtn.classList.add('btn-outline-secondary');
+              folderModeBtn.classList.remove('btn-secondary');
+            });
+            folderModeBtn.addEventListener('click', function() {
+              fileInput.style.display = 'none';
+              folderInput.style.display = '';
+              uploadModeLabel.textContent = 'Select PDF resumes (folder)';
+              folderModeBtn.classList.add('btn-secondary');
+              folderModeBtn.classList.remove('btn-outline-secondary');
+              fileModeBtn.classList.add('btn-outline-primary');
+              fileModeBtn.classList.remove('btn-primary');
+            });
+            // Default to file mode
+            fileModeBtn.click();
+
+            // On submit, append all files to FormData
+            document.querySelector('form').addEventListener('submit', function(e) {
+              if (selectedFiles.length === 0) {
+                alert('Please select at least one file.');
+                e.preventDefault();
+                return false;
+              }
+              const formData = new FormData(this);
+              selectedFiles.forEach(f => formData.append('files', f));
+              // Submit via fetch to preserve files
+              fetch(this.action, {
+                method: 'POST',
+                body: formData
+              }).then(resp => window.location.reload());
+              e.preventDefault();
+            });
+          </script>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

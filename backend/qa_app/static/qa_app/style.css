@@ -1,0 +1,5 @@
+body { background: #f4f6fb; }
+.navbar-brand { letter-spacing: 1px; }
+.card { border-radius: 1rem; }
+input.form-control { border-radius: 2rem; }
+.btn { border-radius: 2rem; }
