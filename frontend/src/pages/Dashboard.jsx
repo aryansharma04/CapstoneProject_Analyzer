@@ -18,7 +18,7 @@ export default function Dashboard() {
 
   useEffect(() => { fetchDashboard(); }, []);
 
-  if (loading) return <div className="page"><div style={{display:'flex',justifyContent:'center',padding:'4rem'}}><div className="spinner"/></div></div>;
+  if (loading) return <div className="page"><div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner" /></div></div>;
 
   return (
     <div className="page">
@@ -98,10 +98,10 @@ function CandidateDashboard({ data, onRefresh }) {
   };
 
   const stats = [
-    { icon: <HiOutlineDocumentText size={24}/>, label: 'My Resumes', value: data?.my_resumes?.length || 0, color: 'var(--accent-blue)' },
-    { icon: <HiOutlineChartBar size={24}/>, label: 'Analyses Done', value: data?.total_analyses || 0, color: 'var(--accent-emerald)' },
-    { icon: <HiOutlineChatAlt2 size={24}/>, label: 'Chat Sessions', value: data?.total_chats || 0, color: 'var(--accent-purple)' },
-    { icon: <HiOutlineBriefcase size={24}/>, label: 'Available JDs', value: data?.available_jds?.length || 0, color: 'var(--accent-amber)' },
+    { icon: <HiOutlineDocumentText size={24} />, label: 'My Resumes', value: data?.my_resumes?.length || 0, color: 'var(--accent-blue)' },
+    { icon: <HiOutlineChartBar size={24} />, label: 'Analyses Done', value: data?.total_analyses || 0, color: 'var(--accent-emerald)' },
+    { icon: <HiOutlineChatAlt2 size={24} />, label: 'Chat Sessions', value: data?.total_chats || 0, color: 'var(--accent-purple)' },
+    { icon: <HiOutlineBriefcase size={24} />, label: 'Available JDs', value: data?.available_jds?.length || 0, color: 'var(--accent-amber)' },
   ];
 
   return (
@@ -121,7 +121,7 @@ function CandidateDashboard({ data, onRefresh }) {
           <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>📄 Upload Resume</h3>
           <div className="upload-zone" onClick={() => fileRef.current?.click()}>
             <input ref={fileRef} type="file" accept=".pdf" hidden onChange={handleUpload} />
-            <div className="upload-icon"><HiOutlineUpload size={48}/></div>
+            <div className="upload-icon"><HiOutlineUpload size={48} /></div>
             <p className="upload-text">{uploading ? 'Uploading...' : <>Click to upload <strong>PDF resume</strong></>}</p>
           </div>
 
@@ -163,10 +163,10 @@ function CandidateDashboard({ data, onRefresh }) {
           <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>📋 Add Job Description</h3>
           <form onSubmit={handleJD}>
             <div className="form-group">
-              <input className="form-input" placeholder="Job Title (e.g. Frontend Developer)" value={jdForm.title} onChange={e => setJdForm({...jdForm, title: e.target.value})} />
+              <input className="form-input" placeholder="Job Title (e.g. Frontend Developer)" value={jdForm.title} onChange={e => setJdForm({ ...jdForm, title: e.target.value })} />
             </div>
             <div className="form-group">
-              <textarea className="form-textarea" placeholder="Paste job description here..." rows={4} value={jdForm.text_content} onChange={e => setJdForm({...jdForm, text_content: e.target.value})} />
+              <textarea className="form-textarea" placeholder="Paste job description here..." rows={4} value={jdForm.text_content} onChange={e => setJdForm({ ...jdForm, text_content: e.target.value })} />
             </div>
             <button className="btn btn-primary" disabled={jdLoading}>{jdLoading ? 'Saving...' : 'Save JD'}</button>
           </form>
@@ -212,7 +212,7 @@ function CandidateDashboard({ data, onRefresh }) {
                 </div>
               ))}
             </div>
-          ) : <p className="empty-text" style={{padding:'1rem'}}>No JDs yet</p>}
+          ) : <p className="empty-text" style={{ padding: '1rem' }}>No JDs yet</p>}
         </div>
       </div>
     </>
@@ -311,9 +311,9 @@ function HRDashboard({ data, onRefresh }) {
   };
 
   const stats = [
-    { icon: <HiOutlineDocumentText size={24}/>, label: 'Total Resumes', value: data?.total_resumes || 0, color: 'var(--accent-blue)' },
-    { icon: <HiOutlineBriefcase size={24}/>, label: 'Job Descriptions', value: data?.total_jds || 0, color: 'var(--accent-emerald)' },
-    { icon: <HiOutlineChatAlt2 size={24}/>, label: 'Chat Sessions', value: data?.total_chats || 0, color: 'var(--accent-purple)' },
+    { icon: <HiOutlineDocumentText size={24} />, label: 'Total Resumes', value: data?.total_resumes || 0, color: 'var(--accent-blue)' },
+    { icon: <HiOutlineBriefcase size={24} />, label: 'Job Descriptions', value: data?.total_jds || 0, color: 'var(--accent-emerald)' },
+    { icon: <HiOutlineChatAlt2 size={24} />, label: 'Chat Sessions', value: data?.total_chats || 0, color: 'var(--accent-purple)' },
   ];
 
   return (
@@ -333,7 +333,7 @@ function HRDashboard({ data, onRefresh }) {
           <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>📁 Bulk Upload Resumes</h3>
           <div className="upload-zone" onClick={() => fileRef.current?.click()}>
             <input ref={fileRef} type="file" accept=".pdf" multiple hidden onChange={handleBulkUpload} />
-            <div className="upload-icon"><HiOutlineUpload size={48}/></div>
+            <div className="upload-icon"><HiOutlineUpload size={48} /></div>
             <p className="upload-text">{uploading ? 'Uploading...' : <>Click to upload <strong>multiple PDFs</strong></>}</p>
           </div>
         </div>
@@ -342,10 +342,10 @@ function HRDashboard({ data, onRefresh }) {
           <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>📋 Create Job Description</h3>
           <form onSubmit={handleJD}>
             <div className="form-group">
-              <input className="form-input" placeholder="Job Title" value={jdForm.title} onChange={e => setJdForm({...jdForm, title: e.target.value})} />
+              <input className="form-input" placeholder="Job Title" value={jdForm.title} onChange={e => setJdForm({ ...jdForm, title: e.target.value })} />
             </div>
             <div className="form-group">
-              <textarea className="form-textarea" placeholder="Paste JD here..." rows={4} value={jdForm.text_content} onChange={e => setJdForm({...jdForm, text_content: e.target.value})} />
+              <textarea className="form-textarea" placeholder="Paste JD here..." rows={4} value={jdForm.text_content} onChange={e => setJdForm({ ...jdForm, text_content: e.target.value })} />
             </div>
             <button className="btn btn-primary" disabled={jdLoading}>{jdLoading ? 'Saving...' : 'Create JD'}</button>
           </form>
@@ -398,7 +398,7 @@ function HRDashboard({ data, onRefresh }) {
                 </div>
               ))}
             </div>
-          ) : <p className="empty-text" style={{padding:'1rem'}}>No JDs yet</p>}
+          ) : <p className="empty-text" style={{ padding: '1rem' }}>No JDs yet</p>}
         </div>
       </div>
 
@@ -438,7 +438,7 @@ function HRDashboard({ data, onRefresh }) {
               </div>
             ))}
           </div>
-        ) : <p className="empty-text" style={{padding:'1rem'}}>No resumes yet</p>}
+        ) : <p className="empty-text" style={{ padding: '1rem' }}>No resumes yet</p>}
       </div>
     </>
   );
